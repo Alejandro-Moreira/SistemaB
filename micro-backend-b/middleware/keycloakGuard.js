@@ -50,6 +50,15 @@ export async function keycloakGuard(req, res, next) {
       roles:    payload.realm_access?.roles || [],
     };
 
+    const requiredRoles = ['admin', 'facturador'];
+    const hasRole = req.user.roles.some(role => requiredRoles.includes(role));
+    if (!hasRole) {
+      console.warn(`[keycloakGuard] Acceso denegado para: ${req.user.username}. Roles actuales: ${req.user.roles}`);
+      return res.status(403).json({
+        error: 'Forbidden: No tienes los roles de facturación requeridos para descifrar datos.'
+      });
+    }
+
     console.log(`[keycloakGuard] Acceso autorizado: ${req.user.username}`);
     next();
 

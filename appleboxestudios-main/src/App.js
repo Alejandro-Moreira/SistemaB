@@ -133,11 +133,16 @@ const BTS_PHOTOS = [
 function Nav({ setPage, keycloak }) {
   const [open, setOpen] = useState(false);
   
-  // Conditionally add 'Facturas' to the navigation links if user is authenticated
+  // Conditionally add 'Facturas' to the navigation links if user is authenticated and has required roles
   const LINKS = ["Inicio", "Somos", "Portafolio", "Servicios", "Contacto"];
   const PAGES = ["home", "somos", "portafolio", "servicios", "contacto"];
   
-  if (keycloak && keycloak.authenticated) {
+  const hasFacturasRole = keycloak && keycloak.authenticated && (
+    keycloak.hasRealmRole('admin') || 
+    keycloak.hasRealmRole('facturador')
+  );
+
+  if (hasFacturasRole) {
     LINKS.push("Facturas");
     PAGES.push("facturas");
   }
@@ -685,12 +690,17 @@ export default function App({ keycloak }) {
   const [page,    setPage]    = useState("home");
   const [project, setProject] = useState(null);
 
+  const hasFacturasRole = keycloak && keycloak.authenticated && (
+    keycloak.hasRealmRole('admin') || 
+    keycloak.hasRealmRole('facturador')
+  );
+
   // If user log out, automatically return to home page
   useEffect(() => {
     if (keycloak && !keycloak.authenticated && page === "facturas") {
       setPage("home");
     }
-  }, [keycloak?.authenticated, page]);
+  }, [keycloak, page]);
 
   const screen = () => {
     switch (page) {
@@ -700,7 +710,18 @@ export default function App({ keycloak }) {
       case "project":    return <Project p={project} setPage={setPage} />;
       case "servicios":  return <Servicios />;
       case "contacto":   return <Contacto />;
-      case "facturas":   return <Facturas keycloak={keycloak} />;
+      case "facturas":   
+        if (!hasFacturasRole) {
+          return (
+            <main className="pt-nav" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ textAlign: 'center', borderLeft: '4px solid #c0392b', padding: '20px', background: 'rgba(192, 57, 43, 0.1)', fontFamily: 'var(--display)' }}>
+                <h2 style={{ color: '#c0392b', marginBottom: '10px', fontSize: '2rem' }}>ACCESO DENEGADO</h2>
+                <p style={{ color: 'var(--muted)' }}>No tienes los roles necesarios para ver el panel de facturación.</p>
+              </div>
+            </main>
+          );
+        }
+        return <Facturas keycloak={keycloak} />;
       default:           return <Home />;
     }
   };
