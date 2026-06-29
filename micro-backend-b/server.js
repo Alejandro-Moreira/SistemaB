@@ -7,6 +7,7 @@ import { keycloakGuard } from './middleware/keycloakGuard.js';
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3003;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'http://localhost:3002';
 

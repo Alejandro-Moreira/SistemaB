@@ -36,5 +36,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "overrides": {
+    "shell-quote": "^1.8.1",
+    "node-forge": "^1.3.15"
   }
 }
